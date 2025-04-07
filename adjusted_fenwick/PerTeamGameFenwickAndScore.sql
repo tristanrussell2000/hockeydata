@@ -29,17 +29,5 @@ Opp.TeamId AS OpponentId, Opp.fullName AS OpponentName, Opp.AdjustedFenwick AS A
 FROM AdjustedFenwick AS Team
 LEFT JOIN AdjustedFenwick AS Opp
 ON Team.gameid=Opp.gameid AND Team.TeamId != Opp.TeamId
---WHERE Team.TeamId = 22 --AND Team.gameid > 2023000000 AND Team.gameid < 2023030000
 
-/*
-SELECT 
-(gameid / 1000000) AS Season,
-AVG(AdjustedFenwickFor) AS AverageAdjFenwickFor,
-AVG(AdjustedFenwickAgainst) AS AverageAdjFenwickAgainst,
-AVG(RawFenwickFor) AS AvgFenwickFor,
-AVG(RawFenwickAgainst) AS AvgFenwickAgsinst,
-AVG(ScoreFor) AS AvgGoalsFor,
-AVG(ScoreAgainst) AS AvgGoalsAgainst
-FROM OilersGames
-GROUP BY Season
 
