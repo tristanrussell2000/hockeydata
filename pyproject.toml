@@ -1,0 +1,17 @@
+[project]
+name = "hockeydata"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dagster>=1.11.1",
+    "dagster-webserver>=1.11.1",
+    "ipykernel>=6.29.5",
+    "numpy>=2.3.1",
+    "pandas>=2.3.1",
+    "pydantic>=2.11.7",
+    "requests>=2.32.4",
+    "seaborn>=0.13.2",
+    "sqlalchemy>=2.0.41",
+]
