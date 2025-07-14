@@ -4,7 +4,7 @@
 WITH ScoreEvent AS (SELECT
 		eventId, gameId,
 		IFNULL(MAX(awayScore)  FILTER  (WHERE awayScore IS NOT NULL) OVER (
-                PARTITION BY gameid
+                PARTITION BY gameId
                 ORDER BY periodNumber ASC, timeInPeriod ASC
                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW
             ),
@@ -12,8 +12,8 @@ WITH ScoreEvent AS (SELECT
         ) AS score_away_at_event,
         IFNULL(
             MAX(homeScore) FILTER (WHERE awayScore IS NOT NULL) OVER (
-                PARTITION BY gameid
-                ORDER BY periodNumber, timeInPeriod
+                PARTITION BY gameId
+                ORDER BY periodNumber ASC, timeInPeriod ASC
                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW
             ),
             0

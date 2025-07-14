@@ -1,12 +1,12 @@
 DROP VIEW IF EXISTS GoalieSavePct;
 CREATE VIEW GoalieSavePct AS
 WITH goalie_avgs AS (SELECT 
-`details.goalieInNetId` AS goalieId,
+goalieInNetId AS goalieId,
 SUM(
     CASE WHEN typeDescKey='goal' THEN 1 ELSE 0 END
   ) AS goals_against,
  COUNT(*) AS shots_against
- FROM event_shots 
+ FROM shot_events 
  WHERE isSOG = 1 AND situationCode=1551 AND gameType=2 AND goalieId  IS NOT NULL
 GROUP BY goalieId)
 

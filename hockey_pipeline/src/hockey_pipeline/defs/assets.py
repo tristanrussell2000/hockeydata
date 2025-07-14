@@ -97,7 +97,7 @@ def games(hockeydb: ResourceParam[Engine]) -> None:
     df['gameDate'] = pd.to_datetime(df['gameDate'])
 
     # Write to DB, replacing games in the 7-day window
-    with enghockeydbine.connect() as conn:
+    with hockeydb.connect() as conn:
         # Use a transaction to delete and insert atomically
         with conn.begin():
             if inspect(hockeydb).has_table("games"):
