@@ -173,5 +173,13 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+#Dagster stuff
 *.lock
 .tmp_dagster*
+history/
+schedules/
+runs/
+logs/
+.nux/
+.telemetry/
+storage/
