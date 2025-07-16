@@ -60,3 +60,21 @@ def per_game_fenwick(hockeydb: ResourceParam[Engine]) -> None:
 def fenwick_coeffs(hockeydb: ResourceParam[Engine]) -> None:
     file_name = Path(__file__).parent / "AdjustedFenwick.sql"
     run_sql_script(hockeydb, file_name)
+
+@asset(
+    pool="sqlite_write_pool",
+    deps=["per_game_fenwick"],
+    key=["transformed", "view", "unblocked_shot_gen_sup"]
+)
+def unblocked_shot_gen_sup(hockeydb: ResourceParam[Engine]) -> None:
+    file_name = Path(__file__).parent / "UnblockedShotGenSup.sql"
+    run_sql_script(hockeydb, file_name)
+
+@asset(
+    pool="sqlite_write_pool",
+    deps=["shot_events"],
+    key=["transformed", "view", "team_scoring_percentage"]
+)
+def team_scoring_percentage(hockeydb: ResourceParam[Engine]) -> None:
+    file_name = Path(__file__).parent / "TeamScoringPercentage.sql"
+    run_sql_script(hockeydb, file_name)

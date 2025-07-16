@@ -183,3 +183,4 @@ logs/
 .nux/
 .telemetry/
 storage/
+db/game-data.sqlite-journal
