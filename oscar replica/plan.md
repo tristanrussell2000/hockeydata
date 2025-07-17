@@ -15,12 +15,14 @@
 
  Plan: Should already be done in the goalie stats view
  DONE
+ BUT: this is just lifetime for each goalie. But earlier games in the dataset, will feauture that goalie earlier in their career. For more accurate results, should compute stats for the lifetime-till-date for each goaltender-game.
 
 ### Measure	Model Coefficient (Beta)	Mean	Standard Deviation
  - 5v5 Goals per Shot-on-goal, Home team	+0.031	0.0425	0.0092
  - 5v5 Goals per Shot-on-goal, Away team	-0.091	0.0424	0.0092
 
 Plan: also a window-function view?
+DONE
 
 ### Measure	Model Coefficient (Beta)	Mean	Standard Deviation
  - 5v4 Shot Generation, Home Team	+0.057	95.08	12.81

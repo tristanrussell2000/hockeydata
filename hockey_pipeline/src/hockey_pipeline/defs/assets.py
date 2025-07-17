@@ -119,7 +119,52 @@ def teams(hockeydb: ResourceParam[Engine]) -> None:
     logger.info(f"Wrote {len(teams_df)} records to the 'teams' table")
 
 @asset(
-    deps=[games],
+    deps=["games"],
+    key=["main", "game_toi"],
+    description="Time on ice on PK, PP, etc for each game"
+)
+def game_toi(hockeydb: ResourceParam[Engine]) -> None:
+    # Fetch game dates for the games to fetch TOI for
+    with hockeydb.connect() as conn:
+        games_with_dates_df = pd.read_sql("""
+            SELECT id, gameDate, season FROM games
+            WHERE id IN (SELECT id FROM games as g LEFT JOIN pk_pp_toi AS toi ON g.id = toi.gameId WHERE toi.gameId IS NULL AND g.season >= 20002001 AND g.gameType IN (2, 3))
+            ORDER BY gameDate ASC
+        """, conn)
+
+    if games_with_dates_df.empty:
+        logger.info("No games with dates to process for TOI.")
+        return
+
+    games_with_dates_df['gameDate'] = pd.to_datetime(games_with_dates_df['gameDate'])
+    season_date_ranges = games_with_dates_df.groupby('season')['gameDate'].agg(['min', 'max']).reset_index()
+
+    for _, row in season_date_ranges.iterrows():
+        season = row['season']
+        first_date = row['min'].strftime('%Y-%m-%d')
+        last_date = row['max'].strftime('%Y-%m-%d')
+        logger.info(f"Season: {season}, First Date: {first_date}, Last Date: {last_date}")
+        
+        url_pk = f"{NHL_STATS_API_BASE_URL}/team/penaltykilltime?limit=-1&isGame=true&cayenneExp=gameDate>=\"{first_date}\" and gameDate<=\"{last_date}\""
+        url_pp = f"{NHL_STATS_API_BASE_URL}/team/powerplaytime?limit=-1&isGame=true&cayenneExp=gameDate>=\"{first_date}\" and gameDate<=\"{last_date}\""
+        url_real = f"{NHL_STATS_API_BASE_URL}/team/realtime?limit=-1&isGame=true&cayenneExp=gameDate>=\"{first_date}\" and gameDate<=\"{last_date}\""
+        toi_pk = requests.get(url_pk).json().get("data")
+        toi_pp = requests.get(url_pp).json().get("data")
+        toi_real = requests.get(url_real).json().get("data")
+        if toi_pk is None or toi_pp is None or toi_real is None or len(toi_pk) == 0 or len(toi_pp) == 0 or len(toi_real) == 0:
+            logger.warning("No pk/pp/real toi data for this season")
+            continue
+
+        pk_df = pd.DataFrame(toi_pk)
+        pp_df = pd.DataFrame(toi_pp)
+        real_df = pd.DataFrame(toi_real)
+        cols_to_keep = ["gameId", "teamId", "gameDate_x", "homeRoad_x", "timeOnIce3v4", "timeOnIce3v5", "timeOnIce4v5", "timeOnIceShorthanded", "timeOnIce4v3", "timeOnIce5v3", "timeOnIce5v4", "timeOnIcePp", "timeOnIcePerGame5v5"]
+        toi_all = pk_df.merge(pp_df, on=["gameId", "teamId"], how="inner").merge(real_df, on=["gameId", "teamId"], how="inner")[cols_to_keep].rename(columns={"gameDate_x": "gameDate", "homeRoad_x": "homeRoad"})
+        toi_all.to_sql("pk_pp_toi", hockeydb, if_exists="append", index=False)
+
+
+@asset(
+    deps=["games"],
     key=["main", "game_events"],
     description="Raw event data"
     ) # This asset depends on the 'games' asset
@@ -132,7 +177,7 @@ def game_events(hockeydb: ResourceParam[Engine]) -> None:
         games_to_fetch_df = pd.read_sql("""
             SELECT g.id FROM games AS g
             LEFT JOIN events AS e ON g.id = e.gameid
-            WHERE e.gameid IS NULL AND e.gameid > 2000020067
+            WHERE e.gameid IS NULL AND g.gameid > 2000020067
             ORDER BY g.id DESC
         """, conn)
 
