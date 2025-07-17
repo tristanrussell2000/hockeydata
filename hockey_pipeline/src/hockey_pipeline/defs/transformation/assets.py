@@ -66,11 +66,11 @@ def fenwick_coeffs(hockeydb: ResourceParam[Engine]) -> None:
 @asset(
     pool="sqlite_write_pool",
     deps=["per_game_fenwick"],
-    key=["transformed", "view", "last25", "unblocked_shot_gen_sup"],
+    key=["transformed", "view", "last25", "unblocked_shot_gen_sup_last25"],
     description="Regular season unblocked shots for and against (Fenwick), adjusted for score/venue, both totals and per hour, averaged over the past 25 games in that season."
 )
-def unblocked_shot_gen_sup(hockeydb: ResourceParam[Engine]) -> None:
-    file_name = Path(__file__).parent / "UnblockedShotGenSup.sql"
+def unblocked_shot_gen_sup_last25(hockeydb: ResourceParam[Engine]) -> None:
+    file_name = Path(__file__).parent / "UnblockedShotGenSupLast25.sql"
     run_sql_script(hockeydb, file_name)
 
 @asset(
@@ -81,6 +81,16 @@ def unblocked_shot_gen_sup(hockeydb: ResourceParam[Engine]) -> None:
 )
 def shot_gen_sup_5v4(hockeydb: ResourceParam[Engine]) -> None:
     file_name = Path(__file__).parent / "ShotGenSup5v4.sql"
+    run_sql_script(hockeydb, file_name)
+
+@asset(
+    pool="sqlite_write_pool",
+    deps=["shot_gen_sup_5v4"],
+    key=["transformed", "view", "last25", "shot_gen_sup_5v4_last25"],
+    description="Regular season shots for at 5v4, against at 4v5, per hour averaged over the last 25 games."
+)
+def shot_gen_sup_5v4_last25(hockeydb: ResourceParam[Engine]) -> None:
+    file_name = Path(__file__).parent / "ShotGenSup5v4Last25.sql"
     run_sql_script(hockeydb, file_name)
 
 @asset(

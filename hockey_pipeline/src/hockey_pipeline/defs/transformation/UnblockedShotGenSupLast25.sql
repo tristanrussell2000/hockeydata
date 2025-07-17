@@ -1,5 +1,5 @@
-DROP VIEW IF EXISTS UnblockedShotGenSup;
-CREATE VIEW UnblockedShotGenSup AS
+DROP VIEW IF EXISTS UnblockedShotGenSupLast25;
+CREATE VIEW UnblockedShotGenSupLast25 AS
 WITH SummedFenwickAndToi AS (SELECT
 gameId,
 season,
