@@ -20,36 +20,26 @@ WHERE  ((situationCode='1451' AND isHomeTeam = 1) OR (situationCode='1541' AND i
 FROM PowerPlayShots
 LEFT JOIN teams as t ON TeamId=t.id
 GROUP BY TeamId, gameId
-ORDER BY gameId ASC)
-
-,TeamGameShotCountsWithOpponent AS 
-(SELECT 
-Team.gameId, 
-Team.season, 
-Team.TeamId AS TeamId, 
-Team.fullName AS TeamName, 
-Team.TotalPowerPlayShots AS TotalPowerPlayShotsFor,
- Team.isHomeTeam, 
-Opp.TeamId AS OpponentId, 
-Opp.fullName AS OpponentName, 
-Opp.TotalPowerPlayShots AS TotalPenaltyKillShotsAgainst, 
-(Team.isHomeTeam * Team.HomeFinal + (1- Team.isHomeTeam) * Team.AwayFinal) AS ScoreFor,
-(Team.isHomeTeam * Team.AwayFinal + (1- Team.isHomeTeam) * Team.HomeFinal) AS ScoreAgainst
-FROM TeamGamePowerPlayShotCounts AS Team
-LEFT JOIN TeamGamePowerPlayShotCounts AS Opp
-ON Team.gameId=Opp.gameId AND Team.TeamId != Opp.TeamId)
+ORDER BY gameId DESC)
 
 SELECT 
-tg.*, 
-tg.TotalPowerPlayShotsFor * 1.0 / (toi.timeOnIce5v4 / 60.0 / 60.0) AS PowerPlayShotsForPerHour,
-tg.TotalPenaltyKillShotsAgainst * 1.0 / (toi.timeOnIce4v5 / 60.0 / 60.0) AS PenaltyKillShotsAgainstPerHour,
+toi.gameId,
+g.season,
+toi.teamId,
+toi.homeRoad,
+CASE WHEN toi.homeRoad = 'H'
+THEN g.visitingTeamId
+ELSE g.homeTeamId
+END AS opponentId,
+team.TotalPowerPlayShots AS TotalPowerPlayShotsFor,
+opp.TotalPowerPlayShots AS TotalPenaltyKillShotsAgainst,
+team.TotalPowerPlayShots * 1.0 / (toi.timeOnIce5v4 / 60.0 / 60.0) AS PowerPlayShotsForPerHour,
+opp.TotalPowerPlayShots * 1.0 / (toi.timeOnIce4v5 / 60.0 / 60.0) AS PenaltyKillShotsAgainstPerHour,
 toi.timeOnIce5v4 AS timeOnIce5v4,
 toi.timeOnIce4v5 AS timeOnIce4v5
-FROM TeamGameShotCountsWithOpponent AS tg
-LEFT JOIN pk_pp_toi  AS toi
-ON tg.gameId = toi.gameId AND tg.TeamId = toi.teamId
-
-
-
-
-
+FROM pk_pp_toi  AS toi
+LEFT JOIN games AS g ON toi.gameId = g.id
+LEFT JOIN TeamGamePowerPlayShotCounts AS team ON toi.gameId = team.gameId AND toi.teamId = team.teamId
+LEFT JOIN TeamGamePowerPlayShotCounts AS opp ON toi.gameId = opp.gameId AND opponentId = opp.teamId
+WHERE g.gameType = 2
+ORDER BY toi.gameId DESC

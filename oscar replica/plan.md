@@ -7,7 +7,7 @@
  - 5v5 Unblocked Shot Suppression, Away Team	+0.106	40.50	4.09
 
  Plan: Run over shot_events for unblocked shots (not sure if shots or shot attempts, maybe do both) with a window function to compute this
- DONE
+ DONE, adjusted per hour
 
 ### Measure	Model Coefficient (Beta)	Mean	Standard Deviation
  - Lifetime Diluted 5v5 goals per shot-on-goal, Home team	-0.058	0.0782	0.0045
@@ -31,6 +31,7 @@ DONE
  - 4v5 Shot Suppression, Away Team	+0.024	95.22	12.15
 
 Plan: again, a window-function view?
+DONE
 
 All shots, not just unblocked shots
 
@@ -40,6 +41,10 @@ Finally, Oscar includes a home-ice advantage term of 0.215; this corresponds to 
 
 Basically get a list, for each team-game combo, all of these terms for X, and whether the team won the game +1 / -1 for win / loss, 0 for tie / shootout. Should also do the standardization in Python, make a notebook or something to load all the data, do the adjustments, then combine into one data set, then train a log reg model.
 
-
+## Next Steps:
+1) Take another look at where the nulls are, see if I can do anything or just drop them. And make sure that data lines up well, that we only have data for regular season games, that all the tables have the required data for all the years I want to use
+2) Make another view? (or do this in pandas?) combining all of the data that I want here, just the columns listed above. (Try to do in SQL, don't resort to some bs python)
+3) Import that view into Pandas. Do the regularization / normalization stuff there. Add the Home-ice term? (or in step 2). Also pull in the games data to create the y results vector.
+4) Run some regressions!!!!
 
 

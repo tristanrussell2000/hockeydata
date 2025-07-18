@@ -23,7 +23,7 @@ SUM(timeOnIcePerGame5v5)  OVER (
 ) AS Prev25TOI5v5
 FROM FenwickAndScore)
 
-SELECT 
+, PerHour AS (SELECT 
 gameId,
 season,
 TeamId,
@@ -31,5 +31,13 @@ TeamName,
 isHomeTeam,
 Prev25FenwickForSum * 1.0 / (Prev25TOI5v5 * 1.0 / 60 / 60) AS Prev25FenwickForPerHour,
 Prev25FenwickAgainstSum* 1.0 / (Prev25TOI5v5 * 1.0 / 60 / 60) AS Prev25FenwickAgainstPerHour
-FROM SummedFenwickAndToi
+FROM SummedFenwickAndToi)
 
+SELECT 
+Team.*,
+Opp.Prev25FenwickForPerHour AS OpponentPrev25FenwickForPerHour,
+Opp.Prev25FenwickAgainstPerHour AS OpponentPrev25FenwickAgainstPerHour
+FROM PerHour AS Team
+LEFT JOIN PerHour AS Opp
+ON Team.gameId = Opp.gameId AND Team.TeamId != Opp.TeamId
+ORDER BY gameId DESC
