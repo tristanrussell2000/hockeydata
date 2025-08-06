@@ -9,7 +9,7 @@ eventOwnerTeamId = homeTeamId AS isHomeTeam,
 SUM(CASE WHEN typeDescKey='goal' THEN 1 ELSE 0 END) AS gameGoals,
 SUM(1) AS gameShots
 FROM shot_events
-WHERE typeDescKey IN ("goal", "shot-on-goal") AND situationCode=1551
+WHERE typeDescKey IN ('goal', 'shot-on-goal') AND situationCode=1551
 GROUP BY gameId, eventOwnerTeamId, season, homeTeamId)
 
 ,Prev25GamesShotsGoals AS (SELECT 

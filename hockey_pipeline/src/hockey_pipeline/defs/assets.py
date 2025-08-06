@@ -162,6 +162,40 @@ def game_toi(hockeydb: ResourceParam[Engine]) -> None:
         toi_all = pk_df.merge(pp_df, on=["gameId", "teamId"], how="inner").merge(real_df, on=["gameId", "teamId"], how="inner")[cols_to_keep].rename(columns={"gameDate_x": "gameDate", "homeRoad_x": "homeRoad"})
         toi_all.to_sql("pk_pp_toi", hockeydb, if_exists="append", index=False)
 
+@asset(
+    deps=["games"],
+    key=["main", "goalie_saves"],
+    description="Per game stats for goalies. Uses goalie/savesByStrength stat api. Crucially, this tells whether goalie was the starter for that game, useful for Oscar and future models."
+)
+def goalie_saves(hockeydb: ResourceParam[Engine]) -> None:
+    with hockeydb.connect() as conn:
+        games_with_dates_df = pd.read_sql("""
+            SELECT id, gameDate, season FROM games
+            WHERE id IN (SELECT id FROM games as g LEFT JOIN goalie_saves as saves on g.id = saves.gameId WHERE saves.gameId IS NULL AND g.season >=20002001 AND g.gameType IN (2, 3))
+            ORDER BY gameDate ASC                                 
+        """, conn)
+
+        if games_with_dates_df.empty:
+            logger.info("No games with dates to process for goalie saves.")
+            return
+        
+        games_with_dates_df['gameDate'] = pd.to_datetime(games_with_dates_df['gameDate'])
+        season_date_ranges = games_with_dates_df.groupby('season')['id'].agg(['min', 'max']).reset_index()
+
+        for _, row in season_date_ranges.iterrows():
+            season = row['season']
+            first_game_id = row['min']
+            last_game_id = row['max']
+            logger.info(f"Season: {season}, First Game: {first_game_id}, Last Game: {last_game_id}")
+
+            url = f"{NHL_STATS_API_BASE_URL}/goalie/savesByStrength?limit=-1&isGame=True&cayenneExp=gameId>=\"{first_game_id}\" and gameId<=\"{last_game_id}\""
+            goalie_saves = requests.get(url).json().get("data")
+            if goalie_saves is None or len(goalie_saves) == 0:
+                logger.warning("No goalie save data for this season")
+                continue
+
+            gs_df = pd.DataFrame(goalie_saves)
+            gs_df.to_sql("goalie_saves", hockeydb, if_exists="append", index=False)
 
 @asset(
     deps=["games"],

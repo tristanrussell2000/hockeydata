@@ -4,6 +4,7 @@ WITH SummedFenwickAndToi AS (SELECT
 gameId,
 season,
 TeamId,
+OpponentId,
 TeamName,
 isHomeTeam,
 SUM(AdjustedFenwickFor) OVER (

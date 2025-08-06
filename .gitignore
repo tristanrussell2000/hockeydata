@@ -184,3 +184,5 @@ logs/
 .telemetry/
 storage/
 db/game-data.sqlite-journal
+db/game-data.sqlite-shm
+db/game-data.sqlite-wal
