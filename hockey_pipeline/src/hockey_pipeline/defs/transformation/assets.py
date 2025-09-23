@@ -46,10 +46,22 @@ def goalie_save_pct(hockeydb: ResourceParam[Engine]) -> None:
 @asset(
     pool="sqlite_write_pool",
     deps=["shot_events", "teams", "game_toi", "fenwick_coeffs"],
-    key=["transformed", "view", "per_game_fenwick"],
-    description="Regular season per game fenwick (unblocked shots) totals, both raw and adjusted for score/venue"
+    key=["transformed", "table", "per_game_fenwick"],
+    description="Regular season per game fenwick (unblocked shots) totals, both raw and adjusted for score/venue. Cached into a table."
 )
 def per_game_fenwick(hockeydb: ResourceParam[Engine]) -> None:
+    # TODO: Add some option to fully refresh data by dropping table first: 
+    # The sql query only adds newer games than what's in the table already
+    file_name = Path(__file__).parent / "PerTeamGameFenwickAndScoreCached.sql"
+    run_sql_script(hockeydb, file_name)
+
+@asset(
+    pool="sqlite_write_pool",
+    deps=["shot_events", "teams", "game_toi", "per_game_fenwick"],
+    key=["transformed", "view", "per_game_fenwick_with_opp"],
+    description="Regular season per game fenwick, for and against. (View)"
+)
+def per_game_fenwick_with_opp(hockeydb: ResourceParam[Engine])-> None:
     file_name = Path(__file__).parent / "PerTeamGameFenwickAndScore.sql"
     run_sql_script(hockeydb, file_name)
 
@@ -65,7 +77,7 @@ def fenwick_coeffs(hockeydb: ResourceParam[Engine]) -> None:
 
 @asset(
     pool="sqlite_write_pool",
-    deps=["per_game_fenwick"],
+    deps=["per_game_fenwick_with_opp"],
     key=["transformed", "view", "last25", "unblocked_shot_gen_sup_last25"],
     description="Regular season unblocked shots for and against (Fenwick), adjusted for score/venue, both totals and per hour, averaged over the past 25 games in that season."
 )

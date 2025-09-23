@@ -12,6 +12,7 @@ dependencies = [
     "pandas>=2.3.1",
     "pydantic>=2.11.7",
     "requests>=2.32.4",
+    "scikit-learn>=1.7.2",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.41",
 ]
