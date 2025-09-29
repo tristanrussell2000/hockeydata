@@ -1,5 +1,5 @@
 DROP VIEW IF EXISTS FenwickAndScore;
-CREATE VIEW FenwickAndScore AS
+CREATE VIEW  IF NOT EXISTS FenwickAndScore AS
 WITH AdjustedFenwickWithOpponent AS 
 (SELECT 
 Team.GameId, Team.Season, Team.TeamId AS TeamId, Team.TeamFullName AS TeamName, Team.AdjustedFenwick AS AdjustedFenwickFor, Team.RawFenwick AS RawFenwickFor, Team.IsHomeTeam, 

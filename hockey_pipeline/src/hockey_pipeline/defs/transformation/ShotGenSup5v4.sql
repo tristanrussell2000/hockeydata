@@ -6,10 +6,9 @@ gameId,
 season,
 (eventOwnerTeamId = homeTeamId) AS isHomeTeam,
 homeScoreAdj,
-awayScoreAdj,
-gameType
+awayScoreAdj
 FROM shot_events 
-WHERE  ((situationCode='1451' AND isHomeTeam = 1) OR (situationCode='1541' AND isHomeTeam = 0)) AND gameType=2)
+WHERE  ((situationCode='1451' AND isHomeTeam = 1) OR (situationCode='1541' AND isHomeTeam = 0)))
 
 ,TeamGamePowerPlayShotCounts AS
  (SELECT TeamId, gameId, season, t.fullName, 
@@ -41,5 +40,4 @@ FROM pk_pp_toi  AS toi
 LEFT JOIN games AS g ON toi.gameId = g.id
 LEFT JOIN TeamGamePowerPlayShotCounts AS team ON toi.gameId = team.gameId AND toi.teamId = team.teamId
 LEFT JOIN TeamGamePowerPlayShotCounts AS opp ON toi.gameId = opp.gameId AND opponentId = opp.teamId
-WHERE g.gameType = 2
 ORDER BY toi.gameId DESC
