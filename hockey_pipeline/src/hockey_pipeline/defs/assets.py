@@ -71,7 +71,7 @@ def flatten_event_json(event: dict) -> dict:
     return flattened_event
 
 
-@asset(key=["main", "games"])
+@asset(key_prefix=["main"])
 def games(hockeydb: ResourceParam[Engine]) -> None:
     """
     Fetches game data from the NHL API.
@@ -105,7 +105,7 @@ def games(hockeydb: ResourceParam[Engine]) -> None:
             df.to_sql("games", conn, if_exists="append", index=False)
     logger.info(f"Wrote {len(df)} records to the 'games' table.")
 
-@asset(key=["main", "teams"])
+@asset(key_prefix=["main"])
 def teams(hockeydb: ResourceParam[Engine]) -> None:
     url = f"{NHL_STATS_API_BASE_URL}/team"
     response = requests.get(url).json()
@@ -120,7 +120,7 @@ def teams(hockeydb: ResourceParam[Engine]) -> None:
 
 @asset(
     deps=["games"],
-    key=["main", "game_toi"],
+    key_prefix=["main"],
     description="Time on ice on PK, PP, etc for each game"
 )
 def game_toi(hockeydb: ResourceParam[Engine]) -> None:
@@ -164,7 +164,7 @@ def game_toi(hockeydb: ResourceParam[Engine]) -> None:
 
 @asset(
     deps=["games"],
-    key=["main", "goalie_saves"],
+    key_prefix=["main"],
     description="Per game stats for goalies. Uses goalie/savesByStrength stat api. Crucially, this tells whether goalie was the starter for that game, useful for Oscar and future models."
 )
 def goalie_saves(hockeydb: ResourceParam[Engine]) -> None:
@@ -199,7 +199,7 @@ def goalie_saves(hockeydb: ResourceParam[Engine]) -> None:
 
 @asset(
     deps=["games"],
-    key=["main", "game_events"],
+    key_prefix=["main"],
     description="Raw event data"
     ) # This asset depends on the 'games' asset
 def game_events(hockeydb: ResourceParam[Engine]) -> None:
