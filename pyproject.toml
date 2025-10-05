@@ -15,4 +15,14 @@ dependencies = [
     "scikit-learn>=1.7.2",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.41",
+    "backend-python",
+    "fastapi[standard]>=0.118.0",
 ]
+
+[tool.uv.workspace]
+members = [
+    "backend-python",
+]
+
+[tool.uv.sources]
+backend-python = { workspace = true }

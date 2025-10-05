@@ -187,3 +187,6 @@ db/game-data.sqlite-journal
 db/game-data.sqlite-shm
 db/game-data.sqlite-wal
 *.pkl
+node_modules/
+backend/package-lock.json
+dist/
