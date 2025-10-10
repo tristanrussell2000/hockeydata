@@ -189,4 +189,4 @@ db/game-data.sqlite-wal
 *.pkl
 node_modules/
 backend/package-lock.json
-dist/
+.idea/
