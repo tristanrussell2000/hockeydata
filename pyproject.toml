@@ -16,13 +16,16 @@ dependencies = [
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.41",
     "backend-python",
+    "hockey_pipeline",
     "fastapi[standard]>=0.118.0",
 ]
 
 [tool.uv.workspace]
 members = [
     "backend-python",
+    "hockey_pipeline"
 ]
 
 [tool.uv.sources]
 backend-python = { workspace = true }
+hockey_pipeline = { workspace = true }

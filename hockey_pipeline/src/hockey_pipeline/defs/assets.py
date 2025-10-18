@@ -71,7 +71,10 @@ def flatten_event_json(event: dict) -> dict:
     return flattened_event
 
 
-@asset(key_prefix=["main"])
+@asset(
+    pool="sqlite_write_pool",
+    key_prefix=["main"]
+)
 def games(hockeydb: ResourceParam[Engine]) -> None:
     """
     Fetches game data from the NHL API.
@@ -105,7 +108,10 @@ def games(hockeydb: ResourceParam[Engine]) -> None:
             df.to_sql("games", conn, if_exists="append", index=False)
     logger.info(f"Wrote {len(df)} records to the 'games' table.")
 
-@asset(key_prefix=["main"])
+@asset(
+    pool="sqlite_write_pool",
+    key_prefix=["main"]
+)
 def teams(hockeydb: ResourceParam[Engine]) -> None:
     url = f"{NHL_STATS_API_BASE_URL}/team"
     response = requests.get(url).json()
@@ -119,6 +125,7 @@ def teams(hockeydb: ResourceParam[Engine]) -> None:
     logger.info(f"Wrote {len(teams_df)} records to the 'teams' table")
 
 @asset(
+    pool="sqlite_write_pool",
     deps=["games"],
     key_prefix=["main"],
     description="Time on ice on PK, PP, etc for each game"
@@ -163,6 +170,7 @@ def game_toi(hockeydb: ResourceParam[Engine]) -> None:
         toi_all.to_sql("pk_pp_toi", hockeydb, if_exists="append", index=False)
 
 @asset(
+    pool="sqlite_write_pool",
     deps=["games"],
     key_prefix=["main"],
     description="Per game stats for goalies. Uses goalie/savesByStrength stat api. Crucially, this tells whether goalie was the starter for that game, useful for Oscar and future models."
@@ -198,6 +206,7 @@ def goalie_saves(hockeydb: ResourceParam[Engine]) -> None:
             gs_df.to_sql("goalie_saves", hockeydb, if_exists="append", index=False)
 
 @asset(
+    pool="sqlite_write_pool",
     deps=["games"],
     key_prefix=["main"],
     description="Raw event data"
@@ -210,8 +219,8 @@ def game_events(hockeydb: ResourceParam[Engine]) -> None:
         # Get games we have in our DB but not in the events table yet
         games_to_fetch_df = pd.read_sql("""
             SELECT g.id FROM games AS g
-            LEFT JOIN events AS e ON g.id = e.gameid
-            WHERE e.gameid IS NULL AND g.gameid > 2000020067
+            LEFT JOIN events AS e ON g.id = e.gameId
+            WHERE e.gameId IS NULL AND g.id > 2000020067
             ORDER BY g.id DESC
         """, conn)
 

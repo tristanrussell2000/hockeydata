@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS PerTeamGameAdjustedFenwick(
     RawFenwick INTEGER,
     HomeFinal INTEGER,
     AwayFinal INTEGER,
-    PRIMARY KEY (GameId, TeamId) 
-) WITHOUT ROWID ;
+    PRIMARY KEY (GameId, TeamId)
+) WITHOUT ROWID;
 
 WITH FenwickCounts AS (SELECT
 eventOwnerTeamId as TeamId,
@@ -22,8 +22,8 @@ MIN(MAX(homeScoreAdj - awayScoreAdj, -3), 3) as HomeLead,
 homeScoreAdj,
 awayScoreAdj,
 gameType
- FROM shot_events 
- LEFT JOIN main.AdjustedFenwick as coeff ON HomeLead = coeff.HomeLeadBinned
+ FROM shot_events
+ LEFT JOIN AdjustedFenwick as coeff ON HomeLead = coeff.HomeLeadBinned
 WHERE  typeDescKey != 'blocked-shot'  AND situationCode='1551'
 AND gameId > COALESCE((SELECT MAX(GameId) FROM PerTeamGameAdjustedFenwick), 0))
 

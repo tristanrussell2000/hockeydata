@@ -1,16 +1,20 @@
-from dagster import asset, ResourceParam
+from dagster import asset, ResourceParam, get_dagster_logger
 from sqlalchemy import Engine, text
 from pathlib import Path
 import sqlparse
+
+logger = get_dagster_logger()
 
 # Helpers
 def run_sql_script(hockeydb: ResourceParam[Engine], file_name: Path):
     with open(file_name) as file:
         statements = sqlparse.split(sqlparse.format(file.read(), strip_comments=True))
-    with hockeydb.connect() as conn:
-        for statement in statements:
-            if statement.strip():
-                conn.execute(text(statement))
+        with hockeydb.begin() as conn:
+            for statement in statements:
+                statement = statement.strip()
+                if statement:
+                    logger.info(f"Executing Statement: {statement}...")
+                    conn.execute(text(statement))
 
 @asset(
     pool="sqlite_write_pool",
