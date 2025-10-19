@@ -18,6 +18,17 @@ def run_sql_script(hockeydb: ResourceParam[Engine], file_name: Path):
 
 @asset(
     pool="sqlite_write_pool",
+    deps=["games"],
+    key_prefix=["transformed"],
+    description="View on Games table with a row for each team that played in the game."
+)
+def team_games(hockeydb: ResourceParam[Engine]) -> None:
+    file_name = Path(__file__).parent / "TeamGames.sql"
+    run_sql_script(hockeydb, file_name)
+    return
+
+@asset(
+    pool="sqlite_write_pool",
     deps=["game_events"],
     key_prefix=["transformed"],
     description="Event results only show score for goals. This script populates new columns that detail the current score at the time of each event, based off of the most recent goal before that event."

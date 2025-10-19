@@ -73,17 +73,20 @@ def flatten_event_json(event: dict) -> dict:
 
 @asset(
     pool="sqlite_write_pool",
-    key_prefix=["main"]
+    key_prefix=["main"],
+    code_version="0.1.0"
 )
 def games(hockeydb: ResourceParam[Engine]) -> None:
     """
     Fetches game data from the NHL API.
     Loads incrementally, but re-processes the last 7 days of data for revisions.
+    Also loads the next 7 days of data into the future
     """
     # Logic to fetch only new/recent games
     max_date_in_db = get_max_date_from_db(hockeydb, "games", "gameDate")
     start_date = max_date_in_db - timedelta(days=7)
-    end_date = datetime.now().date()
+    # Load games 1 week into future
+    end_date = datetime.now().date() + timedelta(days=7)
 
     logger.info(f"Fetching games from {start_date} to {end_date}")
     

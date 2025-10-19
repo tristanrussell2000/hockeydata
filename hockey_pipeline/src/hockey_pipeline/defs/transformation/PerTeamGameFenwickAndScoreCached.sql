@@ -1,3 +1,4 @@
+ANALYZE;
 CREATE TABLE IF NOT EXISTS PerTeamGameAdjustedFenwick(
     TeamId INTEGER,
     GameId INTEGER,
