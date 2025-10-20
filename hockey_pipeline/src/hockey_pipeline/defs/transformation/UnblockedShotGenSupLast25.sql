@@ -21,7 +21,12 @@ SUM(timeOnIcePerGame5v5)  OVER (
 	PARTITION BY season, TeamId
 	ORDER BY gameId ASC
 	ROWS BETWEEN 25 PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW
-) AS Prev25TOI5v5
+) AS Prev25TOI5v5,
+COUNT(timeOnIcePerGame5v5) OVER (
+    PARTITION BY season, TeamId
+    ORDER BY gameId ASC
+    ROWS BETWEEN 25 PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW
+) AS PrevGamesCounted
 FROM FenwickAndScore)
 
 , PerHour AS (SELECT 
@@ -31,7 +36,8 @@ TeamId,
 TeamName,
 isHomeTeam,
 Prev25FenwickForSum * 1.0 / (Prev25TOI5v5 * 1.0 / 60 / 60) AS Prev25FenwickForPerHour,
-Prev25FenwickAgainstSum* 1.0 / (Prev25TOI5v5 * 1.0 / 60 / 60) AS Prev25FenwickAgainstPerHour
+Prev25FenwickAgainstSum* 1.0 / (Prev25TOI5v5 * 1.0 / 60 / 60) AS Prev25FenwickAgainstPerHour,
+PrevGamesCounted
 FROM SummedFenwickAndToi)
 
 SELECT 

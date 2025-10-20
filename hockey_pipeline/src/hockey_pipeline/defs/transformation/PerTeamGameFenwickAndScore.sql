@@ -16,5 +16,5 @@ f.AdjustedFenwickFor * 1.0 / (toi.timeOnIcePerGame5v5 / 60.0 / 60.0) AS Adjusted
 f.AdjustedFenwickAgainst * 1.0 / (toi.timeOnIcePerGame5v5 / 60.0 / 60.0) AS AdjustedFenwickAgainstPerHour,
 toi.timeOnIcePerGame5v5 AS timeOnIcePerGame5v5
 FROM AdjustedFenwickWithOpponent AS f
-LEFT JOIN pk_pp_toi  AS toi
+LEFT JOIN pk_pp_toi AS toi
 ON f.gameId = toi.gameId AND f.TeamId = toi.teamId

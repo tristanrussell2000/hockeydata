@@ -15,32 +15,34 @@ import pandas as pd
     description="Fill training dataset for the Oscar model. https://hockeyviz.com/txt/oscar"
 )
 def training_data(hockeydb: ResourceParam[Engine]):
-
     unblocked_query = """
-        WITH GoalieIdJoin AS (
-        SELECT
-        shots.gameId,
-        shots.season,
-        shots.TeamId,
-        shots.TeamName,
-        shots.isHomeTeam,
-        shots.Prev25FenwickForPerHour,
-        shots.Prev25FenwickAgainstPerHour,
-        pp.Prev25ShotsFor5v4PerHour,
-        pp.Prev25ShotsAgainst4v5PerHour,
-        spct.Prev25ShootingPercentage,
-        playerId as GoalieId
-        FROM UnblockedShotGenSupLast25 AS shots 
-        LEFT JOIN goalie_saves as gs ON shots.gameId = gs.gameId AND ((shots.isHomeTeam = 1 AND gs.homeRoad = 'H') OR (shots.isHomeTeam = 0 AND gs.homeRoad = 'R')) and gs.gamesStarted = 1 
-        LEFT JOIN ShotGenSup5v4Last25 as pp ON pp.gameId = shots.gameId AND pp.teamId = shots.TeamId
-        LEFT JOIN TeamScoringPercentage as spct ON spct.gameId = shots.gameId AND spct.eventOwnerTeamId = shots.TeamId
-        )
-        SELECT GoalieIdJoin.*,
-        gsave.diluted_save_pct,
-        games.homeScore > games.visitingScore AS HomeTeamWin
-        FROM GoalieIdJoin
-        LEFT JOIN GoalieSavePct as gsave ON gsave.goalieId = GoalieIdJoin.GoalieId
-        LEFT JOIN games ON games.id = GoalieIdJoin.gameId
+    WITH GoalieIdJoin AS (
+    SELECT shots.gameId,
+           shots.season,
+           shots.TeamId,
+           shots.TeamName,
+           shots.isHomeTeam,
+           shots.Prev25FenwickForPerHour,
+           shots.Prev25FenwickAgainstPerHour,
+           pp.Prev25ShotsFor5v4PerHour,
+           pp.Prev25ShotsAgainst4v5PerHour,
+           spct.Prev25ShootingPercentage,
+           playerId as GoalieId
+    FROM UnblockedShotGenSupLast25 AS shots
+    LEFT JOIN goalie_saves as gs ON shots.gameId = gs.gameId AND
+                                 ((shots.isHomeTeam = 1 AND gs.homeRoad = 'H') OR
+                                  (shots.isHomeTeam = 0 AND gs.homeRoad = 'R')) and
+                                 gs.gamesStarted = 1
+    LEFT JOIN ShotGenSup5v4Last25 as pp
+           ON pp.id = shots.gameId AND pp.teamId = shots.TeamId
+    LEFT JOIN TeamScoringPercentage as spct
+           ON spct.id = shots.gameId AND spct.teamId = shots.TeamId)
+    SELECT GoalieIdJoin.*,
+         gsave.diluted_save_pct,
+         games.homeScore > games.visitingScore AS HomeTeamWin
+    FROM GoalieIdJoin
+           LEFT JOIN GoalieSavePct as gsave ON gsave.goalieId = GoalieIdJoin.GoalieId
+           LEFT JOIN games ON games.id = GoalieIdJoin.gameId \
     """
     df = pd.read_sql_query(unblocked_query, hockeydb)
 

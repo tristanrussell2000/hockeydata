@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS PerTeamGameAdjustedFenwick(
     AwayFinal INTEGER,
     PRIMARY KEY (GameId, TeamId)
 ) WITHOUT ROWID;
-
+DELETE FROM PerTeamGameAdjustedFenwick;
 WITH FenwickCounts AS (SELECT
 eventOwnerTeamId as TeamId,
 gameId,
@@ -25,11 +25,9 @@ awayScoreAdj,
 gameType
  FROM shot_events
  LEFT JOIN AdjustedFenwick as coeff ON HomeLead = coeff.HomeLeadBinned
-WHERE  typeDescKey != 'blocked-shot'  AND situationCode='1551'
-AND gameId > COALESCE((SELECT MAX(GameId) FROM PerTeamGameAdjustedFenwick), 0))
+WHERE  typeDescKey != 'blocked-shot'  AND situationCode='1551')
 
-INSERT INTO PerTeamGameAdjustedFenwick (TeamId, GameId, GameType, Season, TeamFullName, IsHomeTeam, AdjustedFenwick, RawFenwick, HomeFinal, AwayFinal)
-SELECT TeamId, gameId, gameType, season, t.fullName,
+, PerTeamGameAdjustedFenwickView AS (SELECT TeamId, gameId, gameType, season, t.fullName,
          MAX(isHomeTeam) AS isHomeTeam, 
          SUM(shot_value) AS AdjustedFenwick, 
          COUNT() AS RawFenwick, 
@@ -38,4 +36,20 @@ SELECT TeamId, gameId, gameType, season, t.fullName,
 FROM FenwickCounts
 LEFT JOIN teams as t ON TeamId=t.id
 GROUP BY TeamId, gameId
-ORDER BY gameId ASC;
+ORDER BY gameId ASC)
+
+INSERT INTO PerTeamGameAdjustedFenwick (TeamId, GameId, GameType, Season, TeamFullName, IsHomeTeam, AdjustedFenwick, RawFenwick, HomeFinal, AwayFinal)
+SELECT
+    TeamGames.teamId,
+    TeamGames.id,
+    TeamGames.gameType,
+    TeamGames.season,
+    PerTeamGameAdjustedFenwickView.fullName,
+    TeamGames.isHomeTeam,
+    PerTeamGameAdjustedFenwickView.AdjustedFenwick,
+    PerTeamGameAdjustedFenwickView.RawFenwick,
+    PerTeamGameAdjustedFenwickView.HomeFinal,
+    PerTeamGameAdjustedFenwickView.AwayFinal
+FROM TeamGames
+LEFT JOIN PerTeamGameAdjustedFenwickView ON TeamGames.id = PerTeamGameAdjustedFenwickView.gameId AND TeamGames.teamId = PerTeamGameAdjustedFenwickView.TeamId
+WHERE TeamGames.id >= 2010020000
