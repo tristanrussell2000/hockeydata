@@ -244,15 +244,10 @@ def game_events(hockeydb: ResourceParam[Engine]) -> None:
             try:
                 response_json = response.json()
                 if "plays" in response_json:
-                    if not response_json["plays"]:
-                        logger.info(f"{game_id} has no events")
-                        # Insert dummy event to avoid fetching events for this game again
-                        game_specific_events.append({"gameid": game_id, "typeDescKey": "dummy"})
-                    else:
-                        for play in response_json["plays"]:
-                            flattened_play = flatten_event_json(play)
-                            flattened_play["gameid"] = game_id
-                            game_specific_events.append(flattened_play)
+                    for play in response_json["plays"]:
+                        flattened_play = flatten_event_json(play)
+                        flattened_play["gameid"] = game_id
+                        game_specific_events.append(flattened_play)
                 else:
                     logger.warning(f"No 'plays' key in response for game ID {game_id}. Response: {response_json}")
                     # Insert dummy event if 'plays' key is missing to avoid refetching
