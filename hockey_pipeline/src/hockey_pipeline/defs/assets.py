@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
+from duckdb import DuckDBPyConnection
 
 from sqlalchemy import create_engine, text, inspect, Engine
 
@@ -16,15 +17,14 @@ logger = get_dagster_logger()
 
 
 # --- Helper Functions ---
-def get_max_date_from_db(dbengine, table_name, date_col):
+def get_max_date_from_db(dbconn: DuckDBPyConnection, table_name, date_col):
     """Gets the most recent date from a table to enable incremental loads."""
-    if not inspect(dbengine).has_table(table_name):
-        return datetime(1917, 1, 1).date() # NHL's first season
-    with dbengine.connect() as conn:
-        result = conn.execute(text(f"SELECT MAX({date_col}) FROM {table_name}")).scalar()
-        if result is None:
-            return datetime(1917, 1, 1).date()
-        max_date = pd.to_datetime(result)
+    dbconn.execute(f"SELECT MAX({date_col}) FROM {table_name}")
+    result = dbconn.fetchone()
+    result = result[0] if len(result) > 0 else None
+    if result is None:
+        return datetime(1917, 1, 1).date()
+    max_date = pd.to_datetime(result)
     return max_date.date() if pd.notna(max_date) else datetime(1917, 1, 1).date()
 
 def flatten_event_json(event: dict) -> dict:
@@ -76,14 +76,14 @@ def flatten_event_json(event: dict) -> dict:
     key_prefix=["main"],
     code_version="0.1.0"
 )
-def games(hockeydb: ResourceParam[Engine]) -> None:
+def games(duckconn: ResourceParam[DuckDBPyConnection]) -> None:
     """
     Fetches game data from the NHL API.
     Loads incrementally, but re-processes the last 7 days of data for revisions.
     Also loads the next 7 days of data into the future
     """
     # Logic to fetch only new/recent games
-    max_date_in_db = get_max_date_from_db(hockeydb, "games", "gameDate")
+    max_date_in_db = get_max_date_from_db(duckconn, "games", "gameDate")
     start_date = max_date_in_db - timedelta(days=7)
     # Load games 1 week into future
     end_date = datetime.now().date() + timedelta(days=7)
@@ -102,13 +102,9 @@ def games(hockeydb: ResourceParam[Engine]) -> None:
     df = pd.DataFrame(all_games)
     df['gameDate'] = pd.to_datetime(df['gameDate'])
 
-    # Write to DB, replacing games in the 7-day window
-    with hockeydb.connect() as conn:
-        # Use a transaction to delete and insert atomically
-        with conn.begin():
-            if inspect(hockeydb).has_table("games"):
-                conn.execute(text(f"DELETE FROM games WHERE gameDate >= '{start_date}'"))
-            df.to_sql("games", conn, if_exists="append", index=False)
+    duckconn.execute(f"DELETE FROM games WHERE gameDate >= '{start_date}'")
+    duckconn.execute(f"INSERT INTO games SELECT * FROM df")
+    #df.to_sql("games", duckconn, if_exists="append", index=False)
     logger.info(f"Wrote {len(df)} records to the 'games' table.")
 
 @asset(

@@ -1,0 +1,1 @@
+1) Lookup some more production oriented tools, like a faster db for this

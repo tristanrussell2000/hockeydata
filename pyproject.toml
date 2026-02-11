@@ -18,6 +18,9 @@ dependencies = [
     "backend-python",
     "hockey_pipeline",
     "fastapi[standard]>=0.118.0",
+    "sqlite2duckdb>=0.3.0",
+    "jupyter>=1.1.1",
+    "jupyterlab>=4.5.4",
 ]
 
 [tool.uv.workspace]

@@ -13,7 +13,7 @@ WHERE  ((situationCode='1451' AND isHomeTeam = 1) OR (situationCode='1541' AND i
 ,TeamGamePowerPlayShotCounts AS
  (SELECT TeamId, gameId, season, t.fullName, 
          MAX(isHomeTeam) AS isHomeTeam, 
-         COUNT() AS TotalPowerPlayShots, 
+         COUNT(1) AS TotalPowerPlayShots,
          MAX(homeScoreAdj) as HomeFinal, 
          MAX(awayScoreAdj) AS AwayFinal
 FROM PowerPlayShots
