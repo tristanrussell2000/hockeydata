@@ -186,7 +186,11 @@ storage/
 db/game-data.sqlite-journal
 db/game-data.sqlite-shm
 db/game-data.sqlite-wal
+*.duckdb
+*.duckdb.wal
+db/gamedata.
 *.pkl
 node_modules/
+.vite/
 backend/package-lock.json
 .idea/
